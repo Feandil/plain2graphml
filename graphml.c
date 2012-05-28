@@ -87,6 +87,20 @@ printNode(const int n, const uint32_t radius, const char* label) {
   printf("    </node>\n");
 }
 
+void
+printEdge(const int n, const int i, const int j, const uint32_t size, const char* color) {
+  printf("    <edge id=\"e%i\" source=\"n%i\" target=\"n%i\">\n", n, i, j);
+  printf("      <data key=\"d9\"/>\n");
+  printf("      <data key=\"d10\">\n");
+  printf("        <y:SplineEdge>\n");
+  printf("          <y:Path sx=\"0.0\" sy=\"0.0\" tx=\"0.0\" ty=\"0.0\"/>\n");
+  printf("          <y:LineStyle color=\"%s\" type=\"line\" width=\"%f\"/>\n", color, ((double)size)/1.5);
+  printf("          <y:Arrows source=\"none\" target=\"none\"/>\n");
+  printf("        </y:SplineEdge>\n");
+  printf("      </data>\n");
+  printf("    </edge>\n");
+}
+
 inline void
 printRessourceHeader() {
   printf("  <data key=\"d0\">\n");
@@ -139,29 +153,28 @@ printPieGraph(const int n, const uint32_t radius, const uint8_t size[]) {
   printf("</y:Resource>\n");
 }
 
-static void
-printCharts(const int n, const int size[], const uint8_t s[], const char * const label[]) {
-  int i;
-  printGlobalHeader();
-  printRessourceHeader();
-  for (i = 0; i < n; ++i) {
-    printPieGraph(i, size[i], s + (i * PIE_SIZE));
-  }
-  printRessourceFooter();
-  printGraphHeader();
-  for (i = 0; i < n; ++i) {
-    printNode(i, size[i], label[i]);
-  }
-  printGraphFooter();
-  printGlobalFooter();
-}
-
-
-
 int main(void) {
   uint8_t s[] = { 4, 5, 10, 8, 8, 40 , 1, 2, 7, 70, 2, 1, 9, 1, 5, 7, 3, 5};
   const char *const label[] = { "Test1", "Test2", "Test3", 0 };
   int size[] = { 100, 200, 400 };
-  printCharts(3, size, s, label);
+
+  int i;
+  printGlobalHeader();
+  printRessourceHeader();
+  for (i = 0; i < 3; ++i) {
+    printPieGraph(i, size[i], s + (i * PIE_SIZE));
+  }
+  printRessourceFooter();
+  printGraphHeader();
+  for (i = 0; i < 3; ++i) {
+    printNode(i, size[i], label[i]);
+  }
+  printEdge(0, 0, 1, 5, "#FF0000");
+  printEdge(1, 0, 2, 4, "#FF0000");
+  printEdge(2, 1, 2, 10, "#000000");
+  printGraphFooter();
+  printGlobalFooter();
+
+
   return 0;
 }
