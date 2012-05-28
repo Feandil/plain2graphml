@@ -38,3 +38,6 @@ clean:
 	-rm mixed
 	-rm sum_b sum_c sum_j
 	-rm tri
+
+test: graphml.o
+	$(LINK.o) $^ $(LOADLIBES) $(LDLIBS) -lm -o $@
