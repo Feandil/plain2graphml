@@ -1,47 +1,44 @@
+#define _USE_MATH_DEFINES
+#include <math.h>
 #include <tcutil.h>
 #include <string.h>
 #include <inttypes.h>
+#include "graphml.h"
 
 #define PAST_SIZE 8
 #define BUFFER_SIZE 512
 
-int
-main(int argc, char* argv[])
-{
-  TCMAP *correlated = tcmapnew();
-  TCMAP *argument = tcmapnew();
+static void
+extract(TCMAP *correlated, TCMAP *argument, FILE* in) {
+
   uint32_t past[PAST_SIZE];
   uint32_t header[PAST_SIZE];
   char buffer[BUFFER_SIZE];
   char* b;
   size_t len, current = 0;
   char dec_c;
-  uint16_t sum;
   uint32_t dec_n, nb;
   uint64_t corr;
-  const uint64_t *const_corr;
-  const uint32_t *tmp, *tmp2;
+  const uint32_t *tmp;
   int null_sp, i;
   int use_header = 1;
 
-  const char encode[] = "bcj";
-
   memset(past, 0, PAST_SIZE * sizeof(uint32_t));
 
-  b = fgets(buffer, BUFFER_SIZE - 1, stdin);
+  b = fgets(buffer, BUFFER_SIZE - 1, in);
   while(b != NULL) {
     len = strlen(b);
     if (len > 1) {
       dec_c = *b;
       if (dec_c != '-') {
         switch(dec_c) {
-          case 'b':
+          case 'j':
             nb = 1 << 0;
             break;
-          case 'c':
+          case 'b':
             nb = 1 << 8;
             break;
-          case 'j':
+          case 'c':
             nb = 1 << 16;
             break;
           case 'n':
@@ -49,11 +46,11 @@ main(int argc, char* argv[])
             break;
           default:
             printf("Bad input : '%c'\n", dec_c);
-            return -1;
+            exit(-1);
         }
         if (sscanf((b + 1), "%"SCNu32, &dec_n) != 1) {
           printf("bad input\n");
-          return -1;
+          exit(-1);
         }
         tmp = tcmapget(argument, &dec_n, sizeof(uint32_t), &null_sp);
         if (tmp != NULL) {
@@ -119,27 +116,133 @@ main(int argc, char* argv[])
         }
       }
     }
-    b = fgets(buffer, BUFFER_SIZE - 1, stdin);
+    b = fgets(buffer, BUFFER_SIZE - 1, in);
+  }
+}
+
+const char *arguments[] = {
+  0,
+  "Identique monde physique",
+  "Besoin d'expliciter",
+  "Erreur ciblage",
+  "Critiques sur auteur",
+  "Influences sournoises",
+  "Comment sortir",
+  "Comment sortir ?",
+  "Besoin de control",
+  "Dangereux, Nocif",
+  "Mauvaise alternative",
+  "Danger disparitions",
+  "Egocentricisme",
+  "Solutions officielles",
+  "Mieux qu'avant",
+  "DELETED",
+  "Cultiver diversité",
+  "Pas assez de ciblage",
+  "Facile à by-passer",
+  "Informations persos",
+  "Problème de publicité",
+  "Promotion directe",
+  "J'ai remarqué",
+  "Libre arbitre",
+  "Déviance interne",
+  "DELETED",
+  "DELETED",
+  "J'ai testé",
+  "Besoin de transparence",
+  "Publicité concurrent",
+  "Vrai potientiel",
+  0
+};
+
+#define ARG_MAX 31
+
+int
+main(int argc, char* argv[])
+{
+  FILE *f, *s;
+  int i, null_sp;
+  const uint32_t *arg_f, *arg_s, *tmp;
+  const uint64_t *const_corr;
+  uint8_t args[PIE_SIZE];
+  uint32_t size[ARG_MAX];
+
+  if (argc != 3) {
+    printf("Need 2 arguments\n");
+  }
+  f = fopen(argv[1], "r");
+  if (f == NULL) {
+    perror("openning file 1 (fopen)");
+    exit(-5);
+  }
+  s = fopen(argv[2], "r");
+  if (s == NULL) {
+    perror("openning file 1 (fopen)");
+    fclose(s);
+    exit(-5);
   }
 
-  tcmapiterinit(argument);
-  while ((tmp = tcmapiternext(argument, &null_sp)) != NULL) {
-    tmp2 = tcmapiterval(tmp, &null_sp);
-    sum = 0;
-    sum += *(((const uint8_t*)tmp2) + 0);
-    sum += *(((const uint8_t*)tmp2) + 1);
-    sum += *(((const uint8_t*)tmp2) + 2);
-    printf("s %"PRIu16" %"PRIu32"\n", sum, *tmp);
-    for (i = 0; i < 3; ++i) {
-      if (*(((const uint8_t*)tmp2) + i)) {
-        printf("s.%c %"PRIu8" b%"PRIu32"\n", encode[i], *(((const uint8_t*)tmp2) + i), *tmp);
-      }
+  TCMAP *correlated_f = tcmapnew();
+  TCMAP *argument_f = tcmapnew();
+  TCMAP *correlated_s = tcmapnew();
+  TCMAP *argument_s = tcmapnew();
+  extract(correlated_f, argument_f, f);
+  extract(correlated_s, argument_s, s);
+
+  fclose(f);
+  fclose(s);
+
+  printGlobalHeader();
+  printRessourceHeader();
+  memset(size, 0, ARG_MAX * sizeof(uint32_t));
+  for(i = 1; i < ARG_MAX; ++i) {
+    arg_f = tcmapget(argument_f, &i, sizeof(uint32_t), &null_sp);
+    arg_s = tcmapget(argument_s, &i, sizeof(uint32_t), &null_sp);
+    if (arg_f == NULL) {
+      memset(args, 0, 3);
+    } else {
+      args[0] = (*arg_f) & 0xff;
+      size[i] += args[0];
+      args[1] = ((*arg_f) & 0xff00) >> 8;
+      size[i] += args[1];
+      args[2] = ((*arg_f) & 0xff0000) >> 16;
+      size[i] += args[2];
     }
+    if (arg_s == NULL) {
+      memset(args + 3, 0, 3);
+    } else {
+      args[3] = (*arg_s) & 0xff;
+      size[i] += args[3];
+      args[4] = ((*arg_s) & 0xff00) >> 8;
+      size[i] += args[4];
+      args[5] = ((*arg_s) & 0xff0000) >> 16;
+      size[i] += args[5];
+    }
+    size[i] = (uint32_t) 10 * sqrt(size[i]);
+    printPieGraph(i, size[i], args);
   }
-  tcmapiterinit(correlated);
-  while ((const_corr = tcmapiternext(correlated, &null_sp)) != NULL) {
-    tmp2 = tcmapiterval(const_corr, &null_sp);
-    printf("c %"PRIu32" %"PRIu32"-%"PRIu32"\n", *tmp2, *((const uint32_t*)const_corr), *((const uint32_t*)const_corr + 1));
+  printRessourceFooter();
+
+  printGraphHeader();
+  for(i = 1; i < ARG_MAX; ++i) {
+    printNode(i, size[i], arguments[i]);
   }
+
+  i = 0;
+  tcmapiterinit(correlated_f);
+  while ((const_corr = tcmapiternext(correlated_f, &null_sp)) != NULL) {
+    tmp = tcmapiterval(const_corr, &null_sp);
+    if (*tmp > 1)
+      printEdge(++i, (int) *((const uint32_t*)const_corr), (int) *((const uint32_t*)const_corr + 1), *tmp, "#999999");
+  }
+  tcmapiterinit(correlated_s);
+  while ((const_corr = tcmapiternext(correlated_s, &null_sp)) != NULL) {
+    tmp = tcmapiterval(const_corr, &null_sp);
+    if (*tmp > 1)
+      printEdge(++i, (int) *((const uint32_t*)const_corr), (int) *((const uint32_t*)const_corr + 1),  *tmp, "#800000");
+  }
+  printGraphFooter();
+  printGlobalFooter();
+
   return 0;
 }

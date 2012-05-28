@@ -4,8 +4,6 @@
 
 #include "graphml.h"
 
-#define PIE_SIZE 6
-
 const char *colors[] = {
   "#C0F000",
   "#C0F0F0",
@@ -68,7 +66,7 @@ printNode(const int n, const uint32_t radius, const char* label) {
   printf(" fontStyle=\"plain\" hasBackgroundColor=\"false\" hasLineColor=\"false\" hasText=\"false\" height=\"4.0\"");
   printf(" modelName=\"sandwich\" modelPosition=\"s\" textColor=\"#000000\" visible=\"true\" width=\"4.0\" x=\"%i\" y=\"%i\"/>\n", (n + 1) * radius, 0);
   if (label != NULL) {
-    printf("          <y:NodeLabel alignment=\"center\" autoSizePolicy=\"content\" fontFamily=\"Dialog\" fontSize=\"%i\"", (int)(radius / 1.7));
+    printf("          <y:NodeLabel alignment=\"center\" autoSizePolicy=\"content\" fontFamily=\"Dialog\" fontSize=\"%i\"", (int)(radius / 3.2));
     printf(" fontStyle=\"plain\" hasBackgroundColor=\"false\" hasLineColor=\"false\" height=\"4.0\"");
     printf(" modelName=\"custom\" textColor=\"#000000\" visible=\"true\" width=\"4.0\" x=\"%f\" y=\"%i\">%s<y:LabelModel>\n", (((double)n) + 0.5) * radius, 0, label);
     printf("              <y:SmartNodeLabelModel distance=\"4.0\"/>\n");
@@ -94,7 +92,7 @@ printEdge(const int n, const int i, const int j, const uint32_t size, const char
   printf("      <data key=\"d10\">\n");
   printf("        <y:SplineEdge>\n");
   printf("          <y:Path sx=\"0.0\" sy=\"0.0\" tx=\"0.0\" ty=\"0.0\"/>\n");
-  printf("          <y:LineStyle color=\"%s\" type=\"line\" width=\"%f\"/>\n", color, ((double)size)/1.5);
+  printf("          <y:LineStyle color=\"%s\" type=\"line\" width=\"%f\"/>\n", color, (double)size);
   printf("          <y:Arrows source=\"none\" target=\"none\"/>\n");
   printf("        </y:SplineEdge>\n");
   printf("      </data>\n");
@@ -151,30 +149,4 @@ printPieGraph(const int n, const uint32_t radius, const uint8_t size[]) {
   }
   printf("&lt;/svg&gt;\n");
   printf("</y:Resource>\n");
-}
-
-int main(void) {
-  uint8_t s[] = { 4, 5, 10, 8, 8, 40 , 1, 2, 7, 70, 2, 1, 9, 1, 5, 7, 3, 5};
-  const char *const label[] = { "Test1", "Test2", "Test3", 0 };
-  int size[] = { 100, 200, 400 };
-
-  int i;
-  printGlobalHeader();
-  printRessourceHeader();
-  for (i = 0; i < 3; ++i) {
-    printPieGraph(i, size[i], s + (i * PIE_SIZE));
-  }
-  printRessourceFooter();
-  printGraphHeader();
-  for (i = 0; i < 3; ++i) {
-    printNode(i, size[i], label[i]);
-  }
-  printEdge(0, 0, 1, 5, "#FF0000");
-  printEdge(1, 0, 2, 4, "#FF0000");
-  printEdge(2, 1, 2, 10, "#000000");
-  printGraphFooter();
-  printGlobalFooter();
-
-
-  return 0;
 }

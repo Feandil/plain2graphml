@@ -3,6 +3,8 @@
 
 #include <inttypes.h>
 
+#define PIE_SIZE 6
+
 inline void printGlobalHeader();
 inline void printGlobalFooter();
 inline void printGraphHeader();
