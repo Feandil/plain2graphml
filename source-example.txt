@@ -1,0 +1,18 @@
+-- tools : b = blog, j = journal, c = comment, n = link to other arg (not here) -- : comment/reset header, - reset local link, -r reset local link, link to header.
+--
+b1
+b2
+-
+c4
+c5
+c6
+-r
+c4
+-
+n6
+c5
+--
+j3
+j1
+-r
+c2

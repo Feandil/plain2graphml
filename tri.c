@@ -122,40 +122,20 @@ extract(TCMAP *correlated, TCMAP *argument, FILE* in) {
 
 const char *arguments[] = {
   0,
-  "Pas nouveau",
-  "Expliciter",
-  "Erreur ciblage",
-  "Insultes",
-  "Sournois",
-  "S'échaper",
-  "? S'échaper ?",
-  "Contrôle",
-  "Dangereux",
-  "!Alternative",
-  "Disparition lien",
-  "Egocentricisme",
-  "Solutions",
-  "Mieux qu'avant",
-  "DELETED 1",
-  "Cutiver diversité",
-  "Pas assez",
-  "Évasion facile",
-  "CNIL",
-  "Problème publicité",
-  "Promotion",
-  "J'ai remarqué",
-  "Libre arbitre",
-  "Déviance interne",
-  "DELETED 2",
-  "DELETED 3",
-  "J'ai testé",
-  "Transparence",
-  "Publicité",
-  "Potientiel",
+  "Arg 1",
+  "Arg 2",
+  "Arg 3",
+  "Arg 4",
+  "Arg 5",
+  "Arg 6",
+  "Arg 7",
+  "Arg 8",
+  "Arg 9",
+  "Arg 10",
   0
 };
 
-#define ARG_MAX 31
+#define ARG_MAX 11
 
 int
 main(int argc, char* argv[])
@@ -225,14 +205,12 @@ main(int argc, char* argv[])
   tcmapiterinit(correlated_f);
   while ((const_corr = tcmapiternext(correlated_f, &null_sp)) != NULL) {
     tmp = tcmapiterval(const_corr, &null_sp);
-    if (*tmp > 1)
-      printEdge(++i, (int) *((const uint32_t*)const_corr), (int) *((const uint32_t*)const_corr + 1), *tmp, "#999999");
+    printEdge(++i, (int) *((const uint32_t*)const_corr), (int) *((const uint32_t*)const_corr + 1), *tmp, "#999999");
   }
   tcmapiterinit(correlated_s);
   while ((const_corr = tcmapiternext(correlated_s, &null_sp)) != NULL) {
     tmp = tcmapiterval(const_corr, &null_sp);
-    if (*tmp > 1)
-      printEdge(++i, (int) *((const uint32_t*)const_corr), (int) *((const uint32_t*)const_corr + 1),  *tmp, "#800000");
+    printEdge(++i, (int) *((const uint32_t*)const_corr), (int) *((const uint32_t*)const_corr + 1),  *tmp, "#800000");
   }
   printGraphFooter();
   printGlobalFooter();
