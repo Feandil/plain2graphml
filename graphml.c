@@ -5,12 +5,9 @@
 #include "graphml.h"
 
 const char *colors[] = {
-  "#C0F000",
-  "#C0F0F0",
-  "#C000F0",
-  "#00FF00",
+  "#FFFF00",
   "#00FFFF",
-  "#0000FF",
+  "#00FF00",
   0
 };
 
@@ -54,21 +51,21 @@ printGraphFooter() {
 }
 
 void
-printNode(const int n, const uint32_t radius, const char* label) {
+printNode(const int n, const uint64_t size, const char* label) {
   printf("    <node id=\"n%i\">\n", n);
   printf("      <data key=\"d5\"/>\n");
   printf("      <data key=\"d6\">\n");
   printf("        <y:SVGNode>\n");
-  printf("          <y:Geometry height=\"%i\" width=\"%i\" x=\"%i\" y=\"%i\"/>\n", 2 * radius, 2 * radius, n * radius, 0);
+  printf("          <y:Geometry height=\"%i\" width=\"%i\" x=\"%i\" y=\"%i\"/>\n", (uint32_t)size, (uint32_t)(size >> 32), n * 10, 0);
   printf("          <y:Fill color=\"#CCCCFF\" transparent=\"false\"/>\n");
   printf("          <y:BorderStyle color=\"#000000\" type=\"line\" width=\"1.0\"/>\n");
   printf("          <y:NodeLabel alignment=\"center\" autoSizePolicy=\"content\" fontFamily=\"Dialog\" fontSize=\"12\"");
   printf(" fontStyle=\"plain\" hasBackgroundColor=\"false\" hasLineColor=\"false\" hasText=\"false\" height=\"4.0\"");
-  printf(" modelName=\"sandwich\" modelPosition=\"s\" textColor=\"#000000\" visible=\"true\" width=\"4.0\" x=\"%i\" y=\"%i\"/>\n", (n + 1) * radius, 0);
+  printf(" modelName=\"sandwich\" modelPosition=\"s\" textColor=\"#000000\" visible=\"true\" width=\"4.0\" x=\"%i\" y=\"%i\"/>\n", (n + 1) * 10, 0);
   if (label != NULL) {
-    printf("          <y:NodeLabel alignment=\"center\" autoSizePolicy=\"content\" fontFamily=\"Dialog\" fontSize=\"%i\"", (int)(radius / 3.2));
+    printf("          <y:NodeLabel alignment=\"center\" autoSizePolicy=\"content\" fontFamily=\"Dialog\" fontSize=\"%i\"", (int)((size >> 32) / 2.7));
     printf(" fontStyle=\"plain\" hasBackgroundColor=\"false\" hasLineColor=\"false\" height=\"4.0\"");
-    printf(" modelName=\"custom\" textColor=\"#000000\" visible=\"true\" width=\"4.0\" x=\"%f\" y=\"%i\">%s<y:LabelModel>\n", (((double)n) + 0.5) * radius, 0, label);
+    printf(" modelName=\"custom\" textColor=\"#000000\" visible=\"true\" width=\"4.0\" x=\"%f\" y=\"%i\">%s<y:LabelModel>\n", (double)(size >> 32), 0, label);
     printf("              <y:SmartNodeLabelModel distance=\"4.0\"/>\n");
     printf("            </y:LabelModel>\n");
     printf("            <y:ModelParameter>\n");
@@ -111,42 +108,82 @@ printRessourceFooter() {
   printf("  </data>\n");
 }
 
-void
-printPieGraph(const int n, const uint32_t radius, const uint8_t size[]) {
+uint64_t
+printPieGraph(const int n, const uint8_t size[]) {
   int i;
   uint16_t total;
   long x, y, lastX, lastY;
   double tmp, seg;
+  uint32_t radius_f, radius_s;
+  uint64_t ret;
 
   printf("      <y:Resource id=\"%i\">&lt;!DOCTYPE svg PUBLIC \"-//W3C//DTD SVG 1.1//EN\"\n", n + 1);
   printf("\"http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd\"&gt;\n");
   printf("&lt;svg width=\"20cm\" height=\"20cm\" xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\"&gt;\n");
 
-  lastX = radius;
-  lastY = 0;
   seg = 0;
   total = 0;
-  for (i = 0; i < PIE_SIZE; ++i) {
+  for (i = 0; i < PIE_SIZE / 2; ++i) {
     total += size[i];
   }
+  radius_f = (uint32_t) 10 * sqrt(total);
+  lastX = 0;
+  lastY = radius_f;
 
-  for (i = 0; i < PIE_SIZE; ++i) {
+  for (i = 0; i < PIE_SIZE / 2; ++i) {
     if (size[i] != 0) {
-      tmp = ((double)size[i])/((double)total) * 2 * M_PI;
+      tmp = ((double)size[i])/((double)total) * M_PI;
       seg += tmp;
-      x = (int) (cos(seg) * radius);
-      y = (int) (sin(seg) * radius);
-      if (tmp > M_PI) {
+      x = (int) (cos(seg + M_PI / 2) * radius_f);
+      y = (int) (sin(seg + M_PI / 2) * radius_f);
+      if (tmp >= M_PI) {
         printf("&lt;path d=\"M 0,0 l %li,%li a %"PRIu32",%"PRIu32" 0 1,0 %li,%li z\" fill=\"%s\" stroke=\"none\" stroke-width=\"2\" stroke-linejoin=\"round\" /&gt;\n", \
-                lastX, -lastY, radius, radius, x - lastX, lastY - y, colors[i]);
+                lastX, -lastY, radius_f, radius_f, x - lastX, lastY - y, colors[i]);
       } else {
         printf("&lt;path d=\"M 0,0 l %li,%li a %"PRIu32",%"PRIu32" 0 0,0 %li,%li z\" fill=\"%s\" stroke=\"none\" stroke-width=\"2\" stroke-linejoin=\"round\" /&gt;\n", \
-                lastX, -lastY, radius, radius, x - lastX, lastY - y, colors[i]);
+                lastX, -lastY, radius_f, radius_f, x - lastX, lastY - y, colors[i]);
       }
       lastX = x;
       lastY = y;
     }
   }
+
+  seg = 0;
+  total = 0;
+  for (i = PIE_SIZE / 2; i < PIE_SIZE; ++i) {
+    total += size[i];
+  }
+  radius_s = (uint32_t) 10 * sqrt(total);
+  lastX = 0;
+  lastY = -radius_s;
+
+  for (i = PIE_SIZE - 1; i >= PIE_SIZE / 2; --i) {
+    if (size[i] != 0) {
+      tmp = ((double)size[i])/((double)total) * M_PI;
+      seg += tmp;
+      x = (int) (cos(seg - M_PI / 2) * radius_s);
+      y = (int) (sin(seg - M_PI / 2) * radius_s);
+      if (tmp >= M_PI) {
+        printf("&lt;path d=\"M 0,0 l %li,%li a %"PRIu32",%"PRIu32" 0 1,0 %li,%li z\" fill=\"%s\" stroke=\"none\" stroke-width=\"2\" stroke-linejoin=\"round\" /&gt;\n", \
+                lastX, -lastY, radius_s, radius_s, x - lastX, lastY - y, colors[i - PIE_SIZE / 2]);
+      } else {
+        printf("&lt;path d=\"M 0,0 l %li,%li a %"PRIu32",%"PRIu32" 0 0,0 %li,%li z\" fill=\"%s\" stroke=\"none\" stroke-width=\"2\" stroke-linejoin=\"round\" /&gt;\n", \
+                lastX, -lastY, radius_s, radius_s, x - lastX, lastY - y, colors[i - PIE_SIZE / 2]);
+      }
+      lastX = x;
+      lastY = y;
+    }
+  }
+
   printf("&lt;/svg&gt;\n");
   printf("</y:Resource>\n");
+
+  ret = radius_f + radius_s;
+  ret = ret << 32;
+  if (radius_s > radius_f) {
+    ret |= 2 * radius_s;
+  } else {
+    ret |= 2 * radius_f;
+  }
+  return ret;
 }

@@ -122,36 +122,36 @@ extract(TCMAP *correlated, TCMAP *argument, FILE* in) {
 
 const char *arguments[] = {
   0,
-  "Identique monde physique",
-  "Besoin d'expliciter",
+  "Pas nouveau",
+  "Expliciter",
   "Erreur ciblage",
-  "Critiques sur auteur",
-  "Influences sournoises",
-  "Comment sortir",
-  "Comment sortir ?",
-  "Besoin de control",
-  "Dangereux, Nocif",
-  "Mauvaise alternative",
-  "Danger disparitions",
+  "Insultes",
+  "Sournois",
+  "S'échaper",
+  "? S'échaper ?",
+  "Contrôle",
+  "Dangereux",
+  "!Alternative",
+  "Disparition lien",
   "Egocentricisme",
-  "Solutions officielles",
+  "Solutions",
   "Mieux qu'avant",
-  "DELETED",
-  "Cultiver diversité",
-  "Pas assez de ciblage",
-  "Facile à by-passer",
-  "Informations persos",
-  "Problème de publicité",
-  "Promotion directe",
+  "DELETED 1",
+  "Cutiver diversité",
+  "Pas assez",
+  "Évasion facile",
+  "CNIL",
+  "Problème publicité",
+  "Promotion",
   "J'ai remarqué",
   "Libre arbitre",
   "Déviance interne",
-  "DELETED",
-  "DELETED",
+  "DELETED 2",
+  "DELETED 3",
   "J'ai testé",
-  "Besoin de transparence",
-  "Publicité concurrent",
-  "Vrai potientiel",
+  "Transparence",
+  "Publicité",
+  "Potientiel",
   0
 };
 
@@ -165,7 +165,7 @@ main(int argc, char* argv[])
   const uint32_t *arg_f, *arg_s, *tmp;
   const uint64_t *const_corr;
   uint8_t args[PIE_SIZE];
-  uint32_t size[ARG_MAX];
+  uint64_t size[ARG_MAX];
 
   if (argc != 3) {
     printf("Need 2 arguments\n");
@@ -201,25 +201,18 @@ main(int argc, char* argv[])
     if (arg_f == NULL) {
       memset(args, 0, 3);
     } else {
-      args[0] = (*arg_f) & 0xff;
-      size[i] += args[0];
-      args[1] = ((*arg_f) & 0xff00) >> 8;
-      size[i] += args[1];
+      args[0] = 4 * (*arg_f) & 0xff;
+      args[1] = 2 *((*arg_f) & 0xff00) >> 8;
       args[2] = ((*arg_f) & 0xff0000) >> 16;
-      size[i] += args[2];
     }
     if (arg_s == NULL) {
       memset(args + 3, 0, 3);
     } else {
-      args[3] = (*arg_s) & 0xff;
-      size[i] += args[3];
-      args[4] = ((*arg_s) & 0xff00) >> 8;
-      size[i] += args[4];
+      args[3] = 4 * (*arg_s) & 0xff;
+      args[4] = 2 * ((*arg_s) & 0xff00) >> 8;
       args[5] = ((*arg_s) & 0xff0000) >> 16;
-      size[i] += args[5];
     }
-    size[i] = (uint32_t) 10 * sqrt(size[i]);
-    printPieGraph(i, size[i], args);
+    size[i] = printPieGraph(i, args);
   }
   printRessourceFooter();
 
